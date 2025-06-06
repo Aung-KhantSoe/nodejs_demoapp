@@ -21,6 +21,12 @@ jobs:
         cd src
         npm install
 
+    - name: Start application in background
+      run: |
+        cd src
+        npm run start-bg
+        sleep 10  # Wait for app to start
+
     - name: Run tests
       run: |
         cd src
