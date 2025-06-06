@@ -39,8 +39,26 @@ jobs:
         username: ${{ secrets.EC2_USERNAME }}
         key: ${{ secrets.EC2_SSH_KEY }}
         script: |
+          # Install Node.js 20.x if not already installed
+          if ! command -v node &> /dev/null || [[ $(node -v) != v20* ]]; then
+            curl -fsSL https://rpm.nodesource.com/setup_20.x | sudo bash -
+            sudo yum install -y nodejs
+          fi
+
+          # Install PM2 globally if not installed
+          if ! command -v pm2 &> /dev/null; then
+            sudo npm install -y pm2@latest -g
+          fi
+
+          # Deploy application
           cd ~/nodejs_demoapp
           git pull
           cd src
           npm install
-          pm2 restart all
+          
+          # Check if app is running in PM2, start if not, restart if yes
+          if pm2 list | grep -q "nodejs_demoapp"; then
+            pm2 restart nodejs_demoapp
+          else
+            pm2 start server.mjs --name nodejs_demoapp
+          fi
